@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Prediction</title>
+</head>
+<body>
+    <h1>Stress Prediction</h1>
+    <form id="stress-form">
+        <label for="step_count">Step Count:</label>
+        <input type="text" id="step_count" name="step_count" required>
+
+        <label for="temperature">Temperature:</label>
+        <input type="text" id="temperature" name="temperature" required>
+
+        <label for="humidity">Humidity:</label>
+        <input type="text" id="humidity" name="humidity" required>
+
+        <button type="button" onclick="getStressPrediction()">Get Stress Prediction</button>
+    </form>
+
+    <h2>Predicted Stress: {{ predicted_stress }}</h2>
+
+    <button onclick="startStreaming()">Start Streaming</button>
+
+    <script>
+        function getStressPrediction() {
+            var step_count = document.getElementById('step_count').value;
+            var temperature = document.getElementById('temperature').value;
+            var humidity = document.getElementById('humidity').value;
+
+            fetch('/get_stress_prediction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    step_count: step_count,
+                    temperature: temperature,
+                    humidity: humidity,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('h2').innerText = 'Predicted Stress: ' + data.predicted_stress;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function startStreaming() {
+            var form = document.getElementById('stress-form');
+            var formData = new FormData(form);
+
+            fetch('/process_frame', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Open a new window or navigate to a new page to display the streaming graphs
+                    window.open('/streaming_page', '_blank');
+                } else {
+                    console.error('Error processing frame:', data.error_message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+
